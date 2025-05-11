@@ -1,0 +1,4 @@
+yagmail==0.15.293
+python-dotenv==1.0.0
+beautifulsoup4==4.12.2
+requests==2.31.0
