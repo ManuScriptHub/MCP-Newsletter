@@ -4,6 +4,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
+import filetype
 from dotenv import load_dotenv
 import requests
 from bs4 import BeautifulSoup
@@ -212,10 +213,15 @@ class CuratedNewsletter:
         for item in self.news_items:
             if item.get('image'):
                 with open(item['image'], 'rb') as img_file:
-                    img = MIMEImage(img_file.read())
-                    img.add_header('Content-ID', f'<{os.path.basename(item["image"])}>' )
-                    img.add_header('Content-Disposition', 'inline', filename=os.path.basename(item['image']))
-                    msg.attach(img)
+                    img_data = img_file.read()
+                    kind = filetype.guess(img_data)
+                    if kind and kind.mime.startswith('image/'):
+                        img = MIMEImage(img_data, _subtype=kind.extension)
+                        img.add_header('Content-ID', f'<{os.path.basename(item["image"])}>' )
+                        img.add_header('Content-Disposition', 'inline', filename=os.path.basename(item['image']))
+                        msg.attach(img)
+                    else:
+                        print(f"Skipped attaching image {item['image']}: unknown or invalid image type")
 
         # Send the email via Gmail SMTP
         try:
