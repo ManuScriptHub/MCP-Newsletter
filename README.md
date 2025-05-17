@@ -1,23 +1,24 @@
-# Curated Tech Newsletter
+# Curated AI Newsletter
 
-A Python project for generating and sending a daily curated tech newsletter via email. The newsletter aggregates top stories from popular tech news sources (TechCrunch, Mashable, CNET by default) using their RSS feeds, formats them into a visually appealing HTML email, and sends it to a specified recipient.
+A Python project for generating and sending curated AI newsletters via email. The newsletter uses the Exa API to search for and aggregate content based on user-specified topics, formats them into a visually appealing HTML email, and sends it to specified recipients.
 
 ## Features
 
-- **Automated News Aggregation:** Scrapes and parses RSS feeds from configurable tech news sources.
-- **HTML Email Generation:** Formats news items (title, excerpt, image, date, source) into a modern HTML email.
+- **AI-Powered Content Discovery:** Uses Exa API to find relevant, up-to-date content on any topic.
+- **Smart Summarization:** Automatically generates concise summaries of articles.
+- **HTML Email Generation:** Formats content items (title, summary, image, source) into a modern HTML email.
 - **Image Handling:** Downloads and embeds images inline in the email.
-- **Customizable Sources:** Easily extendable to new RSS feeds or websites.
+- **Favicon Integration:** Displays website favicons for better visual identification of sources.
 - **Environment-based Configuration:** Uses `.env` for secrets and settings.
 - **API Support:** Exposes a FastAPI endpoint for triggering newsletter generation and delivery.
-- **Command-Line Client:** Includes a CLI client with LLM-powered extraction of user intent and source URLs.
+- **Command-Line Client:** Includes a CLI client for easy specification of topics and recipients.
 
 ## Project Structure
 
 ```
 MCP/
-├── curated_newsletter.py    # Main logic for scraping, formatting, and sending newsletters
-├── mcp_client.py           # CLI client, LLM integration, RSS discovery
+├── curated_newsletter.py    # Main logic for content discovery, formatting, and sending newsletters
+├── mcp_client.py           # CLI client for user interaction
 ├── mcp_server.py           # FastAPI server exposing newsletter API
 ├── requirements.txt        # Python dependencies
 ├── .env                    # Environment variables (not committed)
@@ -41,7 +42,7 @@ MCP/
    EMAIL_USER=your_gmail_address@gmail.com
    EMAIL_APP_PASSWORD=your_gmail_app_password
    EMAIL_RECIPIENT=recipient@example.com
-   GROQ_API_KEY=your_groq_api_key
+   EXA_API_KEY=your_exa_api_key
    MCP_SERVER_URL=http://localhost:8000/generate_and_send_newsletter
    ```
    > **Note:** For Gmail, you need an App Password (not your main password). See [Google App Passwords](https://support.google.com/accounts/answer/185833?hl=en).
@@ -50,14 +51,14 @@ MCP/
 
 ### 1. Command-Line Client
 
-Run the CLI client to interactively specify sources and recipient:
+Run the CLI client to specify topics and recipients:
 
 ```bash
 python mcp_client.py
 ```
 
-- Enter a prompt like: `Send me top TechCrunch and Mashable stories to alice@example.com`.
-- The client uses LLM (GROQ API) to extract the recipient and sources, discovers RSS feeds, and calls the server API.
+- Enter a prompt like: `Send a newsletter about AI advancements to user@example.com with 6 results`.
+- The client extracts the topic, recipient email, and number of results, then calls the server API.
 
 ### 2. FastAPI Server
 
@@ -72,44 +73,34 @@ uvicorn mcp_server:app --reload
 - **Body:**
   ```json
   {
-    "email": "recipient@example.com",
-    "websites": {
-      "techcrunch": "https://techcrunch.com/feed/",
-      "mashable": "https://mashable.com/feed/"
-    }
+    "query": "Latest AI developments in natural language processing",
+    "emails": ["recipient@example.com"],
+    "num_results": 6
   }
   ```
-- If `websites` is omitted, defaults to TechCrunch, Mashable, and CNET.
+- The `num_results` parameter is optional and defaults to 5.
 - Responds immediately; email sending runs in the background.
 
 ### 3. Standalone Script
 
-You can also run the newsletter script directly:
+You can also run the newsletter script directly by modifying and executing:
 
 ```bash
 python curated_newsletter.py
 ```
 
-This will scrape default sources, generate, send the newsletter, and clean up temporary files.
-
-## Adding New Sources
-- Update the `rss_feeds` dictionary in `curated_newsletter.py` or provide custom feeds via the API/client.
-- The client can auto-discover RSS feeds for many popular sites.
-
 ## Environment Variables
 - `EMAIL_USER`: Gmail address to send from
 - `EMAIL_APP_PASSWORD`: Gmail app password
 - `EMAIL_RECIPIENT`: Default recipient (can be overridden)
-- `GROQ_API_KEY`: API key for LLM-powered extraction (optional for CLI)
+- `EXA_API_KEY`: API key for Exa content discovery
 - `MCP_SERVER_URL`: Server endpoint for newsletter requests
 
 ## Dependencies
 - Python 3.8+
-- yagmail
+- exa-py
 - python-dotenv
-- beautifulsoup4
 - requests
-- filetype
 - fastapi, uvicorn (for API server)
 
 Install all dependencies with:
@@ -122,9 +113,10 @@ pip install -r requirements.txt
   - Ensure your Gmail account allows app passwords and SMTP access.
   - Check for correct credentials in `.env`.
   - Review any error messages in the console.
-- **No news items?**
-  - Check RSS feed URLs for accuracy.
-  - Some sites may block scraping or change feed URLs.
+- **No content in newsletter?**
+  - Verify your Exa API key is valid.
+  - Try a more specific search query.
+  - Check your internet connection for API access.
 
 ## Contributing
 Pull requests and suggestions are welcome! Please open an issue or PR for improvements or bug fixes.
