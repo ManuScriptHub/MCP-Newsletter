@@ -27,10 +27,29 @@ def parse_input(user_input):
     email_list = []
     num_results = 5
     
-    # Extract query (topic)
-    topic_match = re.search(r'(?:about|on|for|regarding)\s+([^"]*?)(?:\s+to\s+|$)', user_input, re.IGNORECASE)
+    # Extract query (topic) - improved pattern
+    # First try the standard pattern
+    topic_match = re.search(r'(?:about|on|for|regarding)\s+([^"]*?)(?:\s+to\s+|\s+with\s+|$)', user_input, re.IGNORECASE)
     if topic_match:
         query = topic_match.group(1).strip()
+    
+    # If no match, try a more general approach
+    if not query:
+        # Look for text between "newsletter" and "to" or end of string
+        general_match = re.search(r'newsletter\s+([^@\s]+(?:\s+[^@\s]+)*?)(?:\s+to\s+|$)', user_input, re.IGNORECASE)
+        if general_match:
+            query = general_match.group(1).strip()
+            
+    # If still no match, try to extract any substantial text
+    if not query:
+        # Remove email addresses from the input
+        cleaned_input = re.sub(r'[\w\.-]+@[\w\.-]+\.\w+', '', user_input)
+        # Remove common command words
+        cleaned_input = re.sub(r'\b(?:send|create|make|generate|newsletter|to|with|about|on|for|regarding)\b', '', cleaned_input, flags=re.IGNORECASE)
+        # Get the longest remaining phrase
+        words = [w for w in cleaned_input.split() if len(w) > 2]
+        if words:
+            query = ' '.join(words)
     
     # Extract emails
     email_pattern = r'[\w\.-]+@[\w\.-]+\.\w+'
